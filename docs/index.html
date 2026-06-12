@@ -1,0 +1,917 @@
+# Código interno para la generación del archivo del proyecto
+import os
+
+html_content = """<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ejercicios en Casa Alexander</title>
+    <!-- Configuración PWA para Android -->
+    <meta name="theme-color" content="#0D1520">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="icon" type="image/png" href="https://fonts.gstatic.com/s/i/materialiconsoutlined/fitness_center/v12/24px.svg">
+    
+    <!-- Google Fonts & FontAwesome para la interfaz premium -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #0D1520;
+            color: #E2E8F0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        .phone-container {
+            width: 100%;
+            max-width: 412px;
+            height: 100vh;
+            background-color: #0D1520;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        /* Top App Bar */
+        .app-bar {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            background-color: #0D1520;
+        }
+        .app-bar h1 {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #E2E8F0;
+            text-align: center;
+            flex-grow: 1;
+        }
+        .app-bar i {
+            font-size: 18px;
+            color: #64748B;
+            cursor: pointer;
+            width: 24px;
+        }
+        /* Main Content Panel */
+        .content {
+            flex: 1;
+            padding: 10px 20px 20px 20px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        /* Screen: Home */
+        .screen-home {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            height: 100%;
+            padding: 20px 0;
+        }
+        .circle-logo {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background-color: #16222F;
+            border: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .circle-logo i {
+            font-size: 45px;
+            color: #3B82F6;
+        }
+        .start-label {
+            font-size: 11px;
+            color: #64748B;
+            letter-spacing: 2px;
+            font-weight: 700;
+            margin-top: 25px;
+        }
+        .start-title {
+            font-size: 26px;
+            font-weight: 900;
+            color: #FFFFFF;
+            margin-top: 5px;
+        }
+        .btn-primary {
+            width: 100%;
+            height: 60px;
+            background-color: #3B82F6;
+            border: none;
+            border-radius: 16px;
+            color: #FFFFFF;
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:active {
+            background-color: #2563EB;
+        }
+        .start-subtitle {
+            font-size: 13px;
+            color: #64748B;
+            margin-top: 15px;
+            text-align: center;
+        }
+        .metrics-row {
+            display: flex;
+            width: 100%;
+            gap: 15px;
+            margin-top: 35px;
+        }
+        .metric-card {
+            flex: 1;
+            background-color: #16222F;
+            border-radius: 16px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .metric-card i {
+            font-size: 22px;
+        }
+        .metric-info h4 {
+            font-size: 9px;
+            color: #64748B;
+            font-weight: 700;
+        }
+        .metric-info p {
+            font-size: 15px;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-top: 2px;
+        }
+        /* Screen: Workout Active */
+        .screen-workout {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+        }
+        .workout-controls {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .workout-controls i {
+            font-size: 18px;
+            color: #E2E8F0;
+            cursor: pointer;
+            padding: 10px;
+        }
+        .tag-series {
+            padding: 4px 12px;
+            background-color: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #94A3B8;
+        }
+        .exercise-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #FFFFFF;
+            text-align: center;
+            margin-top: 5px;
+            min-height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .tag-group {
+            padding: 5px 14px;
+            background-color: #1E293B;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #60A5FA;
+            margin-top: 10px;
+        }
+        /* Timer Ring Area */
+        .timer-container {
+            width: 190px;
+            height: 190px;
+            margin: 30px 0;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .timer-svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+        .timer-bg {
+            fill: none;
+            stroke: rgba(255,255,255,0.05);
+            stroke-width: 6;
+        }
+        .timer-progress {
+            fill: none;
+            stroke: #3B82F6;
+            stroke-width: 6;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s linear, stroke 0.3s;
+        }
+        .timer-text {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .timer-display {
+            font-size: 44px;
+            font-weight: 900;
+            color: #FFFFFF;
+            letter-spacing: 1px;
+        }
+        .timer-label {
+            font-size: 9px;
+            color: #64748B;
+            letter-spacing: 2px;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+        .reps-display {
+            font-size: 74px;
+            font-weight: 900;
+            color: #FFFFFF;
+            margin: 50px 0;
+            display: none;
+        }
+        /* Details Card */
+        .detail-card {
+            width: 100%;
+            background-color: #16222F;
+            border-radius: 16px;
+            padding: 15px;
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .detail-icon-frame {
+            width: 100%;
+            height: 90px;
+            background-color: #0D1520;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .detail-icon-frame i {
+            font-size: 36px;
+            color: #475569;
+        }
+        .detail-text {
+            font-size: 13px;
+            color: #94A3B8;
+            text-align: center;
+            margin-top: 10px;
+            line-height: 1.4;
+        }
+        /* Next Up Card */
+        .next-card {
+            width: 100%;
+            background-color: #16222F;
+            border-radius: 16px;
+            padding: 15px;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .next-icon-frame {
+            width: 45px;
+            height: 45px;
+            background-color: #0D1520;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #475569;
+            font-size: 20px;
+        }
+        .next-info {
+            flex: 1;
+        }
+        .next-label {
+            font-size: 9px;
+            color: #10B981;
+            font-weight: 700;
+        }
+        .next-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-top: 2px;
+        }
+        .next-time {
+            font-size: 13px;
+            color: #64748B;
+        }
+        /* Action Controls Bottom */
+        .action-area {
+            margin-top: auto;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            padding-top: 15px;
+        }
+        .btn-action-round {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background-color: #3B82F6;
+            border: none;
+            color: #FFFFFF;
+            font-size: 22px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(59,130,246,0.3);
+        }
+        .btn-reps-next {
+            width: 100%;
+            height: 55px;
+            background-color: #5B21B6;
+            border: none;
+            border-radius: 16px;
+            color: #FFFFFF;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            display: none;
+        }
+        /* Screen: Summary End */
+        .screen-summary {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 15px 0;
+        }
+        .summary-star {
+            font-size: 65px;
+            color: #FCD34D;
+            margin-top: 15px;
+        }
+        .summary-brand {
+            font-size: 11px;
+            color: #64748B;
+            letter-spacing: 2px;
+            font-weight: 700;
+            margin-top: 10px;
+        }
+        .summary-title {
+            font-size: 22px;
+            font-weight: 900;
+            color: #FCD34D;
+            margin-top: 5px;
+            line-height: 1.2;
+        }
+        .summary-text {
+            font-size: 13px;
+            color: #64748B;
+            margin-top: 10px;
+        }
+        .summary-metrics {
+            display: flex;
+            width: 100%;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        .summary-card-small {
+            flex: 1;
+            background-color: #16222F;
+            border-radius: 16px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .summary-card-small i {
+            font-size: 18px;
+            color: #FCD34D;
+            margin-bottom: 8px;
+        }
+        .summary-card-small h5 {
+            font-size: 9px;
+            color: #64748B;
+            font-weight: 700;
+        }
+        .summary-card-small p {
+            font-size: 20px;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-top: 4px;
+        }
+        .summary-row-stat {
+            width: 100%;
+            background-color: #16222F;
+            border-radius: 12px;
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .stat-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #94A3B8;
+            font-size: 14px;
+        }
+        .stat-right {
+            font-size: 14px;
+            font-weight: 700;
+            color: #FFFFFF;
+        }
+        .btn-summary-back {
+            width: 100%;
+            height: 55px;
+            background-color: #FCD34D;
+            border: none;
+            border-radius: 16px;
+            color: #0D1520;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 35px;
+        }
+        /* Bottom Nav Bar */
+        .bottom-nav {
+            height: 65px;
+            background-color: #16222F;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding-bottom: 5px;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #64748B;
+            cursor: pointer;
+            gap: 4px;
+        }
+        .nav-item.active {
+            color: #3B82F6;
+        }
+        .nav-item i {
+            font-size: 20px;
+        }
+        .nav-item span {
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="phone-container">
+    <!-- Header -->
+    <div class="app-bar">
+        <i class="fa-solid id-back-btn fa-fitness-center" id="backBtn"></i>
+        <h1>EJERCICIOS EN CASA ALEXANDER</h1>
+        <i class="fa-solid fa-gear"></i>
+    </div>
+
+    <!-- Content Screen Panel -->
+    <div class="content">
+        
+        <!-- PANTALLA INICIO -->
+        <div id="screenHome" class="screen-home">
+            <div class="circle-logo">
+                <i class="fa-solid fa-dumbbell"></i>
+            </div>
+            <div style="text-align: center;">
+                <p class="start-label">LISTO PARA EMPEZAR</p>
+                <h2 class="start-title">Rutina del Día</h2>
+            </div>
+            <button class="btn-primary" onclick="iniciarRutina()">
+                EMPEZAR RUTINA <i class="fa-solid fa-play"></i>
+            </button>
+            <p class="start-subtitle">Fuerza Superior & Abdomen • Nivel Intermedio</p>
+            
+            <div class="metrics-row">
+                <div class="metric-card">
+                    <i class="fa-solid fa-calendar-days" style="color: #10B981;"></i>
+                    <div class="metric-info">
+                        <h4>ÚLTIMA VEZ</h4>
+                        <p>Ayer</p>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <i class="fa-solid fa-fire" style="color: #F97316;"></i>
+                    <div class="metric-info">
+                        <h4>RACHA</h4>
+                        <p>5 Días</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTALLA ENTRENAMIENTO ACTIVO -->
+        <div id="screenWorkout" class="screen-workout">
+            <div class="workout-controls">
+                <i class="fa-solid fa-backward" onclick="pasoAnterior()"></i>
+                <div class="tag-series" id="tagSeries">BLOQUE 1</div>
+                <i class="fa-solid fa-forward" onclick="avanzarPaso()"></i>
+            </div>
+            <h2 class="exercise-title" id="exerciseName">Elevación lateral de brazos</h2>
+            <div class="tag-group" id="tagGroup">HOMBROS</div>
+
+            <!-- Zona de Cronómetro Circular -->
+            <div class="timer-container" id="timerRingArea">
+                <svg class="timer-svg">
+                    <circle class="timer-bg" cx="95" cy="95" r="85"></circle>
+                    <circle class="timer-progress" id="progressCircle" cx="95" cy="95" r="85" stroke-dasharray="534" stroke-dashoffset="0"></circle>
+                </svg>
+                <div class="timer-text">
+                    <span class="timer-display" id="timeDisplay">00:30</span>
+                    <span class="timer-label" id="statusLabel">TRABAJO</span>
+                </div>
+            </div>
+
+            <!-- Zona de Repeticiones Estáticas -->
+            <div class="reps-display" id="repsArea">x10</div>
+
+            <!-- Tarjeta de Técnica -->
+            <div class="detail-card" id="tipCard">
+                <div class="detail-icon-frame">
+                    <i class="fa-solid fa-person-running"></i>
+                </div>
+                <p class="detail-text" id="tipText">Mantén el cuerpo recto y los brazos alineados</p>
+            </div>
+
+            <!-- Tarjeta de Siguiente Paso -->
+            <div class="next-card" id="nextCard">
+                <div class="next-icon-frame">
+                    <i class="fa-solid fa-dumbbell"></i>
+                </div>
+                <div class="next-info">
+                    <span class="next-label">SIGUIENTE:</span>
+                    <p class="next-name" id="nextExerciseName">Flexiones con inclinación</p>
+                </div>
+                <span class="next-time" id="nextExerciseDuration">20s</span>
+            </div>
+
+            <!-- Botones de Acción de Control -->
+            <div class="action-area">
+                <button class="btn-action-round" id="pauseBtn" onclick="alternarPausa()">
+                    <i class="fa-solid fa-pause" id="pauseIcon"></i>
+                </button>
+                <button class="btn-reps-next" id="repsNextBtn" onclick="avanzarPaso()">SIGUIENTE ></button>
+            </div>
+        </div>
+
+        <!-- PANTALLA RESUMEN FINAL -->
+        <div id="screenSummary" class="screen-summary">
+            <i class="fa-solid fa-circle-check summary-star"></i>
+            <p class="summary-brand">ALEXANDER FITNESS</p>
+            <h2 class="summary-title">¡ENTRENAMIENTO<br>COMPLETADO!</h2>
+            <p class="summary-text">Has superado tus límites hoy.<br>Mantén este impulso mañana.</p>
+            
+            <div class="summary-metrics">
+                <div class="summary-card-small">
+                    <i class="fa-solid fa-clock"></i>
+                    <h5>TIEMPO TOTAL</h5>
+                    <p id="sumTotalTime">00:00</p>
+                </div>
+                <div class="summary-card-small">
+                    <i class="fa-solid fa-bolt"></i>
+                    <h5>TRABAJO ACTIVO</h5>
+                    <p id="sumActiveTime">00:00</p>
+                </div>
+            </div>
+
+            <div class="summary-row-stat" style="margin-top: 20px;">
+                <div class="stat-left"><i class="fa-solid fa-fire"></i> Calorías Quemadas</div>
+                <div class="stat-right">380 kcal</div>
+            </div>
+            <div class="summary-row-stat">
+                <div class="stat-left"><i class="fa-solid fa-chart-line"></i> Intensidad Promedio</div>
+                <div class="stat-right">85%</div>
+            </div>
+
+            <button class="btn-summary-back" onclick="volverInicio()">VOLVER AL INICIO</button>
+        </div>
+
+    </div>
+
+    <!-- Bottom Navigation Bar (Solo Inicio) -->
+    <div class="bottom-nav" id="bottomNav">
+        <div class="nav-item active"><i class="fa-solid fa-fitness-center"></i><span>Entrenar</span></div>
+        <div class="nav-item"><i class="fa-solid fa-history"></i><span>Historial</span></div>
+        <div class="nav-item"><i class="fa-solid fa-trophy"></i><span>Logros</span></div>
+        <div class="nav-item"><i class="fa-solid fa-user"></i><span>Perfil</span></div>
+    </div>
+</div>
+
+<script>
+    // ESTRUCTURA DE TU RUTINA REAL DE 32 PASOS
+    const rutina = [
+        {type: 'prep', name: '¡Prepárate!', duration: 10, next: 'Elevación lateral de brazos', group: 'CALENTAMIENTO'},
+        {type: 'time', name: 'Elevación lateral de brazos', duration: 30, group: 'HOMBROS', series: 'BLOQUE 1', tip: 'Mantén el cuerpo recto y los brazos alineados'},
+        {type: 'rest', name: 'Descanso', duration: 20, next: 'Flexiones con inclinación', group: 'RECUPERACIÓN'},
+        {type: 'reps', name: 'Flexiones con inclinación', reps: 10, group: 'PECHO', series: 'BLOQUE 1', tip: 'Apoya las manos en una superficie elevada'},
+        {type: 'rest', name: 'Descanso', duration: 20, next: 'Flexiones normales', group: 'RECUPERACIÓN'},
+        {type: 'reps', name: 'Flexiones normales', reps: 8, group: 'PECHO', series: 'BLOQUE 1', tip: 'Baja con el cuerpo totalmente alineado'},
+        {type: 'rest', name: 'Descanso', duration: 20, next: 'Flexiones con brazos abiertos', group: 'RECUPERACIÓN'},
+        {type: 'reps', name: 'Flexiones con brazos abiertos', reps: 8, group: 'PECHO', series: 'BLOQUE 1', tip: 'Separa las manos más allá del ancho de hombros'},
+        {type: 'rest', name: 'Descanso', duration: 20, next: 'Tríceps en silla', group: 'RECUPERACIÓN'},
+        {type: 'reps', name: 'Tríceps en silla', reps: 10, group: 'BRAZOS', series: 'BLOQUE 1', tip: 'Baja recto manteniendo la espalda cerca a la silla'},
+        {type: 'rest', name: 'Descanso', duration: 20, next: 'Flexiones con brazos abiertos', group: 'RECUPERACIÓN'},
+        {type: 'reps', name: 'Flexiones con brazos abiertos', reps: 6, group: 'PECHO', series: 'BLOQUE 2', tip: 'Enfoca el esfuerzo en la parte externa del pecho'},
+        {type: 'rest', name: 'Descanso', duration: 20, next: 'Flexiones con inclinación', group: 'RECUPERACIÓN'},
+        {type: 'reps', name: 'Flexiones con inclinación', reps: 8, group: 'PECHO', series: 'BLOQUE 2', tip: 'Controla la bajada y empuja con fuerza'},
+        {type: 'rest', name: 'Descanso', duration: 20, next: 'Tríceps en silla', group: 'RECUPERACIÓN'},
+        {type: 'reps', name: 'Tríceps en silla', reps: 8, group: 'BRAZOS', series: 'BLOQUE 2', tip: 'Mantén los codos apuntando hacia atrás'},
+        {type: 'rest', name: 'Descanso', duration: 20, next: 'Presiones de brazos sobre pecho', group: 'RECUPERACIÓN'},
+        {type: 'time', name: 'Presiones de brazos sobre pecho', duration: 30, group: 'PECHO', series: 'BLOQUE 2', tip: 'Junta las palmas y presiona con fuerza hacia el centro'},
+        {type: 'rest', name: 'Descanso', duration: 20, next: 'Plancha sobre antebrazos', group: 'RECUPERACIÓN'},
+        {type: 'time', name: 'Plancha sobre antebrazos', duration: 45, group: 'ABDOMEN', series: 'CORE', tip: 'Contrae el abdomen y mantén la línea recta'},
+        {type: 'rest', name: 'Descanso', duration: 15, next: 'Plancha lateral derecha', group: 'RECUPERACIÓN'},
+        {type: 'time', name: 'Plancha lateral derecha', duration: 20, group: 'ABDOMEN', series: 'CORE', tip: 'Eleva bien la cadera lateral'},
+        {type: 'rest', name: 'Descanso (Cambio de lado)', duration: 10, next: 'Plancha lateral izquierda', group: 'RECUPERACIÓN'},
+        {type: 'time', name: 'Plancha lateral izquierda', duration: 20, group: 'ABDOMEN', series: 'CORE', tip: 'Mantén la alineación del lado izquierdo'},
+        {type: 'rest', name: 'Descanso', duration: 5, next: 'Estiramiento de cobra', group: 'RECUPERACIÓN'},
+        {type: 'time', name: 'Estiramiento de cobra', duration: 30, group: 'ESTIRAMIENTO', series: 'FINAL', tip: 'Estira el abdomen mirando levemente hacia arriba'},
+        {type: 'time', name: 'Estiramiento de hombros derecho', duration: 10, group: 'ESTIRAMIENTO', series: 'FINAL', tip: 'Cruza el brazo derecho sobre el pecho'},
+        {type: 'time', name: 'Estiramiento de hombros izquierdo', duration: 10, group: 'ESTIRAMIENTO', series: 'FINAL', tip: 'Cruza el brazo izquierdo sobre el pecho'},
+        {type: 'time', name: 'Estiramiento de tríceps derecho', duration: 15, group: 'ESTIRAMIENTO', series: 'FINAL', tip: 'Lleva el codo derecho por detrás de tu cabeza'},
+        {type: 'time', name: 'Estiramiento de tríceps izquierdo', duration: 15, group: 'ESTIRAMIENTO', series: 'FINAL', tip: 'Lleva el codo izquierdo por detrás de tu cabeza'},
+        {type: 'time', name: 'Agarre de manos detrás de la espalda', duration: 20, group: 'ESTIRAMIENTO', series: 'FINAL', tip: 'Abre el pecho entrelazando las manos atrás'},
+        {type: 'rest', name: 'Descanso', duration: 10, next: 'Estiramiento de pecho', group: 'RECUPERACIÓN'},
+        {type: 'time', name: 'Estiramiento de pecho', duration: 20, group: 'ESTIRAMIENTO', series: 'FINAL', tip: 'Abre los brazos expandiendo la caja torácica'}
+    ];
+
+    let indiceActual = -1;
+    let tiempoRestante = 0;
+    let duracionTotalPaso = 0;
+    let temporizador = null;
+    let temporizadorGlobal = null;
+    let estaPausado = false;
+    let wakeLockSentinel = null;
+
+    let tiempoTotalEntrenamiento = 0;
+    let tiempoTrabajoActivo = 0;
+    let alertaVisual = false;
+
+    const circle = document.getElementById('progressCircle');
+    const perimeter = 2 * Math.PI * 85;
+
+    // CONTROL DEL COMPORTAMIENTO DE WAKE LOCK (PANTALLA ENCENDIDA)
+    async function activarWakeLock() {
+        try {
+            if ('wakeLock' in navigator) {
+                wakeLockSentinel = await navigator.wakeLock.request('screen');
+                console.log("Wake Lock activado: pantalla fija.");
+            }
+        } catch (err) {
+            console.log("Wake lock no soportado o denegado.");
+        }
+    }
+
+    function liberarWakeLock() {
+        if (wakeLockSentinel !== null) {
+            wakeLockSentinel.release();
+            wakeLockSentinel = null;
+            console.log("Wake Lock liberado.");
+        }
+    }
+
+    function iniciarRutina() {
+        activarWakeLock();
+        indiceActual = 0;
+        tiempoTotalEntrenamiento = 0;
+        tiempoTrabajoActivo = 0;
+        estaPausado = false;
+
+        document.getElementById('screenHome').style.display = 'none';
+        document.getElementById('bottomNav').style.display = 'none';
+        document.getElementById('screenWorkout').style.display = 'flex';
+        
+        // Cambiar icono de barra superior a flecha atrás
+        const backBtn = document.getElementById('backBtn');
+        backBtn.className = "fa-solid fa-arrow-left";
+        backBtn.onclick = salirModoEntrenamiento;
+
+        iniciarContadoresGlobales();
+        cargarPaso(0);
+    }
+
+    function iniciarContadoresGlobales() {
+        if(temporizadorGlobal) clearInterval(temporizadorGlobal);
+        temporizadorGlobal = setInterval(() => {
+            if (!estaPausado && indiceActual >= 0 && indiceActual < rutina.length) {
+                tiempoTotalEntrenamiento++;
+                const paso = rutina[indiceActual];
+                if (paso.type === 'time' || paso.type === 'reps') {
+                    tiempoTrabajoActivo++;
+                }
+            }
+        }, 1000);
+    }
+
+    function cargarPaso(indice) {
+        if(temporizador) clearInterval(temporizador);
+        estaPausado = false;
+        alertaVisual = false;
+        document.getElementById('pauseIcon').className = "fa-solid fa-pause";
+
+        if (indice >= rutina.length) {
+            finalizarRutina();
+            return;
+        }
+
+        const paso = rutina[indice];
+        document.getElementById('exerciseName').innerText = paso.name;
+        document.getElementById('tagGroup').innerText = paso.group;
+        document.getElementById('tagSeries').innerText = paso.series || paso.group;
+
+        // Cambiar color dinámico de fondo según el tipo estilo Stitch
+        let colorFondo = "#3B82F6"; // Trabajo por defecto
+        if(paso.type === 'rest') colorFondo = "#10B981";
+        if(paso.type === 'prep') colorFondo = "#F97316";
+        circle.style.stroke = colorFondo;
+
+        if (paso.type === 'rest') {
+            document.getElementById('statusLabel').innerText = "RECUPERACIÓN";
+        } else {
+            document.getElementById('statusLabel').innerText = "TRABAJO";
+        }
+
+        if (paso.type === 'reps') {
+            // Interfaz para Repeticiones fijas
+            document.getElementById('timerRingArea').style.display = 'none';
+            document.getElementById('pauseBtn').style.display = 'none';
+            document.getElementById('repsArea').style.display = 'block';
+            document.getElementById('repsArea').innerText = "x" + paso.reps;
+            document.getElementById('repsNextBtn').style.display = 'block';
+        } else {
+            // Interfaz para ejercicio por Tiempo
+            document.getElementById('timerRingArea').style.display = 'flex';
+            document.getElementById('pauseBtn').style.display = 'flex';
+            document.getElementById('repsArea').style.display = 'none';
+            document.getElementById('repsNextBtn').style.display = 'none';
+
+            duracionTotalPaso = paso.duration;
+            tiempoRestante = duracionTotalPaso;
+            actualizarRelojVisual();
+            iniciarRelojPaso();
+        }
+
+        // Tarjetas dinámicas inferiores
+        if (paso.tip) {
+            document.getElementById('tipCard').style.display = 'flex';
+            document.getElementById('tipText').innerText = paso.tip;
+            document.getElementById('nextCard').style.display = 'none';
+        } else if (paso.next) {
+            document.getElementById('tipCard').style.display = 'none';
+            document.getElementById('nextCard').style.display = 'flex';
+            document.getElementById('nextExerciseName').innerText = paso.next;
+            
+            // Buscar la duración del siguiente paso
+            let siguiente = rutina[indice + 1];
+            if(siguiente) {
+                document.getElementById('nextExerciseDuration').innerText = siguiente.duration ? siguiente.duration + "s" : "x" + siguiente.reps;
+            } else {
+                document.getElementById('nextExerciseDuration').innerText = "";
+            }
+        } else {
+            document.getElementById('tipCard').style.display = 'none';
+            document.getElementById('nextCard').style.display = 'none';
+        }
+    }
+
+    function iniciarRelojPaso() {
+        temporizador = setInterval(() => {
+            if (!estaPausado) {
+                if (tiempoRestante > 0) {
+                    tiempoRestante--;
+                    
+                    // Alerta por destellos visuales en los últimos 3 segundos
+                    if (tiempoRestante >= 1 && tiempoRestante <= 3) {
+                        alertaVisual = !alertaVisual;
+                        circle.style.stroke = alertaVisual ? "#EF4444" : (rutina[indiceActual].type === 'rest' ? "#10B981" : "#3B82F6");
+                    } else {
+                        alertaVisual = false;
+                    }
+                    actualizarRelojVisual();
+                } else {
+                    clearInterval(temporizador);
+                    avanzarPaso();
+                }
+            }
+        }, 1000);
+    }
+
+    function actualizarRelojVisual() {
+        document.getElementById('timeDisplay').innerText = formatearTiempo(tiempoRestante);
+        const offset = perimeter - (tiempoRestante / duracionTotalPaso) * perimeter;
+        circle.style.strokeDashoffset = offset;
+    }
+
+    function avanzarPaso() {
+        if(indiceActual < rutina.length) {
+            indiceActual++;
+            cargarPaso(indiceActual);
+        }
+    }
+
+    function pasoAnterior() {
+        if (indiceActual > 0) {
+            indiceActual--;
+            cargarPaso(indiceActual);
+        }
+    }
+
+    function alternarPausa() {
+        estaPausado = !estaPausado;
+        document.getElementById('pauseIcon').className = estaPausado ? "fa-solid fa-play" : "fa-solid fa-pause";
+    }
+
+    function finalizarRutina() {
+        clearInterval(temporizador);
+        clearInterval(temporizadorGlobal);
+        liberarWakeLock();
+
+        document.getElementById('screenWorkout').style.display = 'none';
+        document.getElementById('screenSummary').style.display = 'flex';
+
+        document.getElementById('sumTotalTime').innerText = formatearTiempo(tiempoTotalEntrenamiento);
+        document.getElementById('sumActiveTime').innerText = formatearTiempo(tiempoTrabajoActivo);
+    }
+
+    function volverInicio() {
+        document.getElementById('screenSummary').style.display = 'none';
+        document.getElementById('screenHome').style.display = 'flex';
+        document.getElementById('bottomNav').style.display = 'flex';
+        
+        const backBtn = document.getElementById('backBtn');
+        backBtn.className = "fa-solid fa-fitness-center";
+        backBtn.onclick = null;
+    }
+
+    function salirModoEntrenamiento() {
+        clearInterval(temporizador);
+        clearInterval(temporizadorGlobal);
+        liberarWakeLock();
+        volverInicio();
+    }
+
+    function formatearTiempo(segundos) {
+        const m = Math.floor(segundos / 60).toString().padLeft(2, '0');
+        const s = (segundos % 60).toString().padLeft(2, '0');
+        return m + ":" + s;
+    }
+
+    // Extensión polyfill rápida para rellenar ceros
+    String.prototype.padLeft = function (length, character) {
+        return this.length >= length ? this : (new Array(length - this.length + 1).join(character || '0') + this);
+    };
+</script>
+
+</body>
+</html>"""
+
+os.makedirs('/mnt/data', exist_ok=True)
+with open('/mnt/data/index.html', 'w', encoding='utf-8') as f:
+    f.write(html_content)
+print("File generated successfully.")
